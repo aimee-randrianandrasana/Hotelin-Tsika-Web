@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Hotelin-Tsika{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    {% if session.get("user_id") %}
+    <aside class="sidebar">
+        <div class="sidebar-brand"><h1>Hotelin-Tsika</h1></div>
+        <nav>
+            <a href="{{ url_for('main.dashboard') }}" class="{% if request.endpoint == 'main.dashboard' %}active{% endif %}">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                <span>Accueil</span>
+            </a>
+            <a href="{{ url_for('clients.list_clients') }}" class="{% if 'client' in request.endpoint %}active{% endif %}">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                <span>Clients</span>
+            </a>
+            <a href="{{ url_for('archives.list_archives') }}" class="{% if 'archive' in request.endpoint %}active{% endif %}">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/></svg>
+                <span>Archives</span>
+            </a>
+            <a href="{{ url_for('employees.list_employees') }}" class="{% if 'employee' in request.endpoint %}active{% endif %}">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>Personnel</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="#" onclick="confirmPopup('Voulez-vous vraiment vous deconnecter ?','warning').then(function(ok){if(ok)window.location='{{ url_for('auth.logout') }}';});return false;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                <span>Quitter</span>
+            </a>
+        </div>
+    </aside>
+    {% endif %}
+
+    <div class="app">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-container">
+            {% for category, message in messages %}
+            <div class="flash flash-{{ category }}" id="flash-{{ loop.index }}">
+                {% if category == 'success' %}&#10003;{% elif category == 'error' %}&#10007;{% else %}&#8505;{% endif %}
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script>
+        // auto-dismiss flash messages
+        document.querySelectorAll('.flash').forEach(function(el, i) {
+            setTimeout(function() {
+                el.style.transition = 'opacity 0.4s';
+                el.style.opacity = '0';
+                setTimeout(function() { el.remove(); }, 400);
+            }, 3000 + i * 500);
+        });
+
+        // notification popup (petite, largeur auto)
+        function notify(msg, type, duration) {
+            type = type || 'info';
+            duration = duration || 3000;
+            var icons = { success: '&#10003;', error: '&#10007;', warning: '&#9888;', info: '&#8505;' };
+            var labels = { success: 'Succes', error: 'Erreur', warning: 'Attention', info: 'Info' };
+            var el = document.createElement('div');
+            el.className = 'notify-toast';
+            el.innerHTML =
+                '<div class="popup-icon popup-icon-' + type + '">' + icons[type] + '</div>' +
+                '<div class="notify-content">' +
+                    '<strong>' + (labels[type] || labels.info) + '</strong>' +
+                    '<span>' + msg + '</span>' +
+                '</div>' +
+                '<button class="notify-close" onclick="this.parentElement.remove()">&times;</button>';
+            document.body.appendChild(el);
+            requestAnimationFrame(function() {
+                el.classList.add('show');
+            });
+            setTimeout(function() {
+                el.style.transition = 'opacity 0.3s, transform 0.3s';
+                el.style.opacity = '0';
+                el.style.transform = 'translateX(20px)';
+                setTimeout(function() { el.remove(); }, 300);
+            }, duration);
+        }
+
+        // confirmation popup (returns promise)
+        function confirmPopup(msg, type) {
+            type = type || 'warning';
+            return new Promise(function(resolve) {
+                var icons = { success: '&#10003;', error: '&#10007;', warning: '&#9888;', info: '&#8505;' };
+                var overlay = document.createElement('div');
+                overlay.className = 'popup-overlay';
+                overlay.innerHTML =
+                    '<div class="popup-box">' +
+                        '<div class="popup-header">' +
+                            '<div class="popup-icon popup-icon-' + type + '">' + icons[type] + '</div>' +
+                            '<span>Confirmation</span>' +
+                        '</div>' +
+                        '<div class="popup-body">' + msg + '</div>' +
+                        '<div class="popup-actions">' +
+                            '<button class="popup-btn popup-btn-cancel" id="pop-cancel">Annuler</button>' +
+                            '<button class="popup-btn popup-btn-danger" id="pop-ok">Confirmer</button>' +
+                        '</div>' +
+                    '</div>';
+                document.body.appendChild(overlay);
+                requestAnimationFrame(function() {
+                    overlay.classList.add('show');
+                });
+
+                function close(val) {
+                    overlay.style.transition = 'opacity 0.2s';
+                    overlay.style.opacity = '0';
+                    setTimeout(function() { overlay.remove(); }, 200);
+                    resolve(val);
+                }
+
+                overlay.querySelector('#pop-ok').addEventListener('click', function() { close(true); });
+                overlay.querySelector('#pop-cancel').addEventListener('click', function() { close(false); });
+                overlay.addEventListener('click', function(e) {
+                    if (e.target === overlay) close(false);
+                });
+                document.addEventListener('keydown', function handler(e) {
+                    if (e.key === 'Escape') {
+                        close(false);
+                        document.removeEventListener('keydown', handler);
+                    }
+                });
+            });
+        }
+
+        // helper: submit POST form
+        function postTo(url) {
+            var f = document.createElement('form');
+            f.method = 'POST';
+            f.action = url;
+            document.body.appendChild(f);
+            f.submit();
+        }
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

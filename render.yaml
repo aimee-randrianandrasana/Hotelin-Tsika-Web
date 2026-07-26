@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: hotelin-tsika-web
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: hotel-tsika-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ADMIN_USER
+        value: joker@gmail.com
+      - key: ADMIN_PASS
+        value: joker@test
+
+databases:
+  - name: hotel-tsika-db
+    plan: free
+    databaseName: hotel_tsika

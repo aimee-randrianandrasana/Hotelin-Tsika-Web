@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+{% block title %}Clients - Hotelin-Tsika{% endblock %}
+{% block content %}
+<div class="page">
+    <!-- title -->
+    <div class="page-title-bar">
+        <span class="page-title">Gestion des Clients</span>
+    </div>
+
+    <!-- search -->
+    <div class="page-search">
+        <input type="text" id="searchInput" placeholder="Rechercher un client..."/>
+        <div class="search-count">{{ clients|length }} client(s)</div>
+    </div>
+
+    <!-- table -->
+    <div class="page-table">
+        <div class="table-wrap">
+            <table id="clientsTable">
+                <thead>
+                    <tr>
+                        <th>Nom</th>
+                        <th>Prenom</th>
+                        <th>CIN</th>
+                        <th>Classe</th>
+                        <th>Chambre</th>
+                        <th>Nuits</th>
+                        <th>Arrivee</th>
+                        <th>Depart</th>
+                        <th>Recette</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in clients %}
+                    {% set nuits = ((c.date_fin - c.date_debut).days if c.date_debut and c.date_fin else 0) %}
+                    <tr data-id="{{ c.id }}" onclick="selectClient(this,{{ c.id }},'{{ c.nom }}','{{ c.prenom }}','{{ c.cin }}',{{ c.chambre }},'{{ c.tel }}','{{ c.email or '' }}','{{ c.date_debut.strftime('%d/%m/%Y') if c.date_debut else '' }}','{{ c.date_fin.strftime('%d/%m/%Y') if c.date_fin else '' }}',{{ nuits }},{{ c.prix_total }},'{{ c.type_chambre }}')">
+                        <td>{{ c.nom }}</td>
+                        <td>{{ c.prenom }}</td>
+                        <td>{{ c.cin }}</td>
+                        <td style="color:{% if c.type_chambre=='vip' %}#aa9a5a{% else %}#6a8aba{% endif %};font-weight:bold">{% if c.type_chambre=='vip' %}VIP{% else %}Classic{% endif %}</td>
+                        <td style="color:#6aaa7a;font-weight:bold">{{ c.chambre }}</td>
+                        <td>{{ nuits }}</td>
+                        <td>{{ c.date_debut.strftime('%d/%m/%Y') if c.date_debut else '-' }}</td>
+                        <td>{{ c.date_fin.strftime('%d/%m/%Y') if c.date_fin else '-' }}</td>
+                        <td style="color:#6aaa7a;font-weight:bold">{{ '{:,}'.format(c.prix_total).replace(',',' ') }} Ar</td>
+                    </tr>
+                    {% endfor %}
+                    {% if not clients %}
+                    <tr><td colspan="9" style="text-align:center;color:#5a7a9a;padding:16px">Aucun client</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- form -->
+    <div class="page-form">
+        <div class="form-grid">
+            <div>
+                <label class="form-label">Nom</label>
+                <input type="text" name="nom" id="f_nom" value="{{ client.nom if client else '' }}"/>
+            </div>
+            <div>
+                <label class="form-label">Prenom*</label>
+                <input type="text" name="prenom" id="f_prenom" value="{{ client.prenom if client else '' }}" required/>
+            </div>
+            <div>
+                <label class="form-label">CIN*</label>
+                <input type="text" name="cin" id="f_cin" value="{{ client.cin if client else '' }}" required maxlength="12"/>
+            </div>
+            <div>
+                <label class="form-label">Classe</label>
+                <select name="type_chambre" id="f_classe">
+                    <option value="classic" {{ 'selected' if (client and client.type_chambre=='classic') or not client else '' }}>Classique</option>
+                    <option value="vip" {{ 'selected' if client and client.type_chambre=='vip' else '' }}>VIP</option>
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Chambre N.</label>
+                <input type="number" name="chambre" id="f_chambre" value="{{ client.chambre if client else 1 }}" min="1" max="50" style="max-width:80px"/>
+            </div>
+            <div>
+                <label class="form-label">Profession</label>
+                <input type="text" name="profession" id="f_profession" value="{{ client.email if client and client.email else '' }}"/>
+            </div>
+            <div>
+                <label class="form-label">Adresse</label>
+                <input type="text" name="adresse" id="f_adresse" value=""/>
+            </div>
+            <div>
+                <label class="form-label">Telephone*</label>
+                <input type="text" name="tel" id="f_tel" value="{{ client.tel if client else '' }}" required maxlength="10"/>
+            </div>
+            <div>
+                <label class="form-label">Email</label>
+                <input type="email" name="email" id="f_email" value="{{ client.email if client and client.email else '' }}"/>
+            </div>
+            <div>
+                <label class="form-label">Nuits</label>
+                <input type="text" id="f_nuits" readonly style="max-width:80px;background:#0e1f36;color:#7a9aba"/>
+            </div>
+            <div>
+                <label class="form-label">Date debut*</label>
+                <input type="date" name="date_debut" id="f_debut" value="{{ client.date_debut if client and client.date_debut else '' }}" required/>
+            </div>
+            <div>
+                <label class="form-label">Date fin*</label>
+                <input type="date" name="date_fin" id="f_fin" value="{{ client.date_fin if client and client.date_fin else '' }}" required/>
+            </div>
+            <div>
+                <label class="form-label">Recette :</label>
+                <span id="f_recette" style="color:#6aaa7a;font-weight:bold;font-size:14px">{% if client and client.prix_total %}{{ '{:,}'.format(client.prix_total).replace(',',' ') }} Ar{% else %}Ar{% endif %}</span>
+            </div>
+        </div>
+        <form method="POST" id="clientForm" style="display:none">
+            <input type="hidden" name="nom" id="h_nom"/>
+            <input type="hidden" name="prenom" id="h_prenom"/>
+            <input type="hidden" name="cin" id="h_cin"/>
+            <input type="hidden" name="type_chambre" id="h_classe"/>
+            <input type="hidden" name="chambre" id="h_chambre"/>
+            <input type="hidden" name="tel" id="h_tel"/>
+            <input type="hidden" name="email" id="h_email"/>
+            <input type="hidden" name="date_debut" id="h_debut"/>
+            <input type="hidden" name="date_fin" id="h_fin"/>
+        </form>
+    </div>
+
+    <!-- actions -->
+    <div class="page-actions">
+        <button type="button" class="btn-cancel" onclick="clearForm()">Nouveau</button>
+        <button type="button" class="btn-modify" onclick="submitEdit()">Modifier</button>
+        <button type="button" class="btn-add" onclick="submitAdd()">Ajouter</button>
+        <button type="button" class="btn-delete" onclick="submitDelete()">Supprimer</button>
+        <button type="button" class="btn-delete" onclick="submitDeleteAll()">Vider</button>
+    </div>
+
+    <!-- detail panel -->
+    <div class="page-right">
+        <div class="panel-sunken">
+            <div class="panel-inner">
+                <div class="panel-title">Le Client</div>
+                <hr class="sep">
+                <table style="width:100%;border-collapse:collapse">
+                    <tr><td class="info-label" style="width:42%">Nom :</td><td class="info-value" id="d_nom">................</td></tr>
+                    <tr><td class="info-label">Prenom :</td><td class="info-value" id="d_prenom">................</td></tr>
+                    <tr><td class="info-label">CIN :</td><td class="info-value" id="d_cin">................</td></tr>
+                    <tr><td class="info-label">Classe :</td><td class="info-value" id="d_classe">................</td></tr>
+                    <tr><td class="info-label">Chambre N. :</td><td class="info-value" id="d_chambre">................</td></tr>
+                    <tr><td class="info-label">Telephone :</td><td class="info-value" id="d_tel">................</td></tr>
+                    <tr><td class="info-label">Email :</td><td class="info-value" id="d_email">................</td></tr>
+                    <tr><td colspan="2"><hr class="sep"></td></tr>
+                    <tr><td class="info-label">Du :</td><td class="info-value" id="d_debut">................</td></tr>
+                    <tr><td class="info-label">Pour :</td><td class="info-value" id="d_nuits">................ <span class="info-label">Nuit</span></td></tr>
+                    <tr><td class="info-label">Au :</td><td class="info-value" id="d_fin">................</td></tr>
+                    <tr><td colspan="2"><hr class="sep"></td></tr>
+                    <tr><td class="info-label">Recette :</td><td class="info-value" id="d_recette" style="color:#6aaa7a">................</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let selectedId = null;
+
+    function selectClient(row, id, nom, prenom, cin, chambre, tel, email, debut, fin, nuits, recette, classe) {
+        document.querySelectorAll('#clientsTable tbody tr').forEach(function(r) {
+            r.classList.remove('active-row');
+        });
+        row.classList.add('active-row');
+        selectedId = id;
+
+        document.getElementById('d_nom').textContent = nom;
+        document.getElementById('d_prenom').textContent = prenom;
+        document.getElementById('d_cin').textContent = cin;
+        document.getElementById('d_classe').textContent = classe === 'vip' ? 'VIP' : 'Classique';
+        document.getElementById('d_chambre').textContent = chambre;
+        document.getElementById('d_tel').textContent = tel;
+        document.getElementById('d_email').textContent = email || '...';
+        document.getElementById('d_debut').textContent = debut;
+        document.getElementById('d_nuits').innerHTML = nuits + ' <span class="info-label">Nuit</span>';
+        document.getElementById('d_fin').textContent = fin;
+        document.getElementById('d_recette').textContent = recette.toLocaleString('fr-FR').replace(/\s/g, ' ') + ' Ar';
+
+        document.getElementById('f_nom').value = nom;
+        document.getElementById('f_prenom').value = prenom;
+        document.getElementById('f_cin').value = cin;
+        document.getElementById('f_classe').value = classe;
+        document.getElementById('f_chambre').value = chambre;
+        document.getElementById('f_tel').value = tel;
+        document.getElementById('f_email').value = email;
+        document.getElementById('f_debut').value = debut ? debut.split('/').reverse().join('-') : '';
+        document.getElementById('f_fin').value = fin ? fin.split('/').reverse().join('-') : '';
+        updateNuits();
+    }
+
+    function updateNuits() {
+        var d = new Date(document.getElementById('f_debut').value);
+        var f = new Date(document.getElementById('f_fin').value);
+        var n = Math.max(0, Math.round((f - d) / (1000 * 60 * 60 * 24)));
+        document.getElementById('f_nuits').value = n || '';
+        var cls = document.getElementById('f_classe').value;
+        var prix = cls === 'vip' ? 20000 : 12000;
+        var rec = n * prix;
+        document.getElementById('f_recette').textContent = rec ? rec.toLocaleString('fr-FR').replace(/\s/g, ' ') + ' Ar' : 'Ar';
+    }
+
+    document.getElementById('f_debut').addEventListener('change', updateNuits);
+    document.getElementById('f_fin').addEventListener('change', updateNuits);
+    document.getElementById('f_classe').addEventListener('change', updateNuits);
+
+    function clearForm() {
+        selectedId = null;
+        document.querySelectorAll('#clientsTable tbody tr').forEach(function(r) {
+            r.classList.remove('active-row');
+        });
+        ['f_nom', 'f_prenom', 'f_cin', 'f_chambre', 'f_tel', 'f_email', 'f_profession', 'f_adresse'].forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        document.getElementById('f_classe').value = 'classic';
+        document.getElementById('f_debut').value = '';
+        document.getElementById('f_fin').value = '';
+        document.getElementById('f_nuits').value = '';
+        document.getElementById('f_recette').textContent = 'Ar';
+        document.getElementById('f_chambre').value = 1;
+        ['d_nom', 'd_prenom', 'd_cin', 'd_classe', 'd_chambre', 'd_tel', 'd_email', 'd_debut', 'd_nuits', 'd_fin', 'd_recette'].forEach(function(id) {
+            document.getElementById(id).textContent = '................';
+        });
+        document.getElementById('clientForm').action = '';
+    }
+
+    function syncHidden() {
+        document.getElementById('h_nom').value = document.getElementById('f_nom').value;
+        document.getElementById('h_prenom').value = document.getElementById('f_prenom').value;
+        document.getElementById('h_cin').value = document.getElementById('f_cin').value;
+        document.getElementById('h_classe').value = document.getElementById('f_classe').value;
+        document.getElementById('h_chambre').value = document.getElementById('f_chambre').value;
+        document.getElementById('h_tel').value = document.getElementById('f_tel').value;
+        document.getElementById('h_email').value = document.getElementById('f_email').value;
+        document.getElementById('h_debut').value = document.getElementById('f_debut').value;
+        document.getElementById('h_fin').value = document.getElementById('f_fin').value;
+    }
+
+    function submitAdd() {
+        if (!document.getElementById('f_prenom').value || !document.getElementById('f_cin').value) {
+            notify('Prenom et CIN obligatoires', 'warning');
+            return;
+        }
+        syncHidden();
+        document.getElementById('clientForm').action = '{{ url_for("clients.new_client") }}';
+        document.getElementById('clientForm').submit();
+    }
+
+    function submitEdit() {
+        if (!selectedId) {
+            notify('Selectionnez un client', 'warning');
+            return;
+        }
+        syncHidden();
+        document.getElementById('clientForm').action = '{{ url_for("clients.edit_client", client_id=0) }}'.replace('0', selectedId);
+        document.getElementById('clientForm').submit();
+    }
+
+    async function submitDelete() {
+        if (!selectedId) {
+            notify('Selectionnez un client', 'warning');
+            return;
+        }
+        if (!await confirmPopup('Archiver ce client ?')) return;
+        postTo('{{ url_for("clients.archive_client", client_id=0) }}'.replace('0', selectedId));
+    }
+
+    async function submitDeleteAll() {
+        if (!await confirmPopup('Supprimer TOUS les clients ?')) return;
+        postTo('{{ url_for("clients.delete_all") }}');
+    }
+
+    (function() {
+        var rows = document.querySelectorAll('#clientsTable tbody tr[data-id]');
+        if (rows.length > 0) {
+            var last = rows[rows.length - 1];
+            last.scrollIntoView({ block: 'center' });
+            last.click();
+        }
+    })();
+</script>
+{% endblock %}

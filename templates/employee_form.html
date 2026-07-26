@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}{{ "Modifier" if employee else "Recruter" }} - Hotelin-Tsika{% endblock %}
+{% block content %}
+<div class="mb-6">
+    <a href="{{ url_for('employees.list_employees') }}" class="text-blue-400 hover:text-blue-300 text-sm">&larr; Retour au personnel</a>
+    <h1 class="text-2xl font-bold text-white mt-2">{{ "Modifier l'employe" if employee else "Recruter un employe" }}</h1>
+</div>
+
+<div class="card p-6 max-w-2xl">
+    <form method="POST" class="space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm text-slate-400 mb-1">Nom *</label>
+                <input type="text" name="nom" value="{{ employee.nom if employee else '' }}" required class="input-field"/>
+            </div>
+            <div>
+                <label class="block text-sm text-slate-400 mb-1">Prenom *</label>
+                <input type="text" name="prenom" value="{{ employee.prenom if employee else '' }}" required class="input-field"/>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm text-slate-400 mb-1">CIN (12 chiffres) *</label>
+                <input type="text" name="cin" value="{{ employee.cin if employee else '' }}" required class="input-field" maxlength="12"/>
+            </div>
+            <div>
+                <label class="block text-sm text-slate-400 mb-1">Tel (10 chiffres) *</label>
+                <input type="text" name="tel" value="{{ employee.tel if employee else '' }}" required class="input-field" maxlength="10"/>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm text-slate-400 mb-1">Poste *</label>
+                <select name="poste" class="input-field">
+                    {% for p in ["Receptionniste","Serveur","Directeur","Maintenance","Cuisinier"] %}
+                    <option value="{{ p }}" {{ 'selected' if employee and employee.poste == p else '' }}>{{ p }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm text-slate-400 mb-1">Grade *</label>
+                <select name="grade" class="input-field">
+                    {% for g in ["Junior","Intermediaire","Senior","Directeur"] %}
+                    <option value="{{ g }}" {{ 'selected' if employee and employee.grade == g else '' }}>{{ g }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="flex gap-3 pt-2">
+            <button type="submit" class="btn btn-primary">{{ "Enregistrer" if employee else "Recruter" }}</button>
+            <a href="{{ url_for('employees.list_employees') }}" class="btn btn-outline">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Accueil - Hotelin-Tsika{% endblock %}
+{% block content %}
+<div style="display:flex;flex-direction:column;height:100%">
+    <div class="page-title-bar" style="flex-shrink:0">
+        <span class="page-title">Accueil</span>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:16px 20px">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+            <div class="panel" style="text-align:center;padding:14px 8px">
+                <div style="color:#5a7a9a;font-size:13px;margin-bottom:2px">Clients actuels</div>
+                <div style="color:#7a9aba;font-size:30px;font-weight:bold">{{ nb_clients }}</div>
+            </div>
+            <div class="panel" style="text-align:center;padding:14px 8px">
+                <div style="color:#5a7a9a;font-size:13px;margin-bottom:2px">Employes</div>
+                <div style="color:#8a7aaa;font-size:30px;font-weight:bold">{{ nb_employees }}</div>
+            </div>
+            <div class="panel" style="text-align:center;padding:14px 8px">
+                <div style="color:#5a7a9a;font-size:13px;margin-bottom:2px">Archives</div>
+                <div style="color:#aa8080;font-size:30px;font-weight:bold">{{ nb_archives }}</div>
+            </div>
+            <div class="panel" style="text-align:center;padding:14px 8px">
+                <div style="color:#5a7a9a;font-size:13px;margin-bottom:2px">Recette totale</div>
+                <div style="color:#6aaa7a;font-size:30px;font-weight:bold">{{ "{:,}".format(total_recette).replace(","," ") }} Ar</div>
+            </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+            <a href="{{ url_for('clients.list_clients') }}" class="panel" style="text-decoration:none;padding:16px">
+                <div style="font-size:16px;font-weight:bold;color:#7a9aba;margin-bottom:2px">Gestion Clients</div>
+                <div style="color:#5a7a9a;font-size:14px">Ajouter, modifier, archiver, exporter</div>
+            </a>
+            <a href="{{ url_for('employees.list_employees') }}" class="panel" style="text-decoration:none;padding:16px">
+                <div style="font-size:16px;font-weight:bold;color:#8a7aaa;margin-bottom:2px">Gestion Personnel</div>
+                <div style="color:#5a7a9a;font-size:14px">Recruter, payer, promouvoir, renvoyer</div>
+            </a>
+            <a href="{{ url_for('archives.list_archives') }}" class="panel" style="text-decoration:none;padding:16px">
+                <div style="font-size:16px;font-weight:bold;color:#aa8080;margin-bottom:2px">Archives</div>
+                <div style="color:#5a7a9a;font-size:14px">Historique des clients</div>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

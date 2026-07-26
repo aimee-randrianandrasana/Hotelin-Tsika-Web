@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Archives - Hotelin-Tsika{% endblock %}
+{% block content %}
+<div class="page">
+    <!-- title -->
+    <div class="page-title-bar">
+        <span class="page-title">Archives</span>
+    </div>
+
+    <!-- search -->
+    <div class="page-search">
+        <input type="text" id="searchInput" placeholder="Rechercher dans les archives..."/>
+        <div class="search-count">{{ archives|length }} archive(s)</div>
+    </div>
+
+    <!-- table -->
+    <div class="page-table">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nom</th>
+                        <th>Prenom</th>
+                        <th>CIN</th>
+                        <th>Statut</th>
+                        <th>Chambre</th>
+                        <th>Nuits</th>
+                        <th>Debut</th>
+                        <th>Fin</th>
+                        <th>Recette</th>
+                        <th>Archive le</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in archives %}
+                    {% set nuits = ((c.date_fin - c.date_debut).days if c.date_debut and c.date_fin else 0) %}
+                    <tr>
+                        <td>{{ c.nom }}</td>
+                        <td>{{ c.prenom }}</td>
+                        <td>{{ c.cin }}</td>
+                        <td style="color:{% if c.type_chambre=='vip' %}#aa9a5a{% else %}#6a8aba{% endif %};font-weight:bold">{% if c.type_chambre=='vip' %}VIP{% else %}Classic{% endif %}</td>
+                        <td style="color:#6aaa7a;font-weight:bold">{{ c.chambre }}</td>
+                        <td>{{ nuits }}</td>
+                        <td>{{ c.date_debut.strftime('%d/%m/%Y') if c.date_debut else '-' }}</td>
+                        <td>{{ c.date_fin.strftime('%d/%m/%Y') if c.date_fin else '-' }}</td>
+                        <td style="color:#aa8080;font-weight:bold">{{ '{:,}'.format(c.prix_total).replace(',',' ') }} Ar</td>
+                        <td style="color:#5a7a9a">{{ c.archived_at.strftime('%d/%m/%Y %H:%M') if c.archived_at else '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% if not archives %}
+                    <tr><td colspan="10" style="text-align:center;color:#5a7a9a;padding:16px">Aucune archive</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- form slot empty for archives -->
+    <div class="page-form" style="min-height:0;max-height:0;border:none;padding:0;overflow:hidden"></div>
+
+    <!-- actions -->
+    <div class="page-actions">
+        <button type="button" class="btn-cancel" onclick="window.location='{{ url_for('main.dashboard') }}'">Accueil</button>
+        <button type="button" class="btn-export" onclick="window.location='{{ url_for('clients.export_csv') }}'">Exporter(.csv)</button>
+        <button type="button" class="btn-delete" onclick="clearHistory()">Vider</button>
+    </div>
+
+    <!-- detail panel -->
+    <div class="page-right">
+        <div class="panel-sunken">
+            <div class="panel-inner">
+                <div class="panel-title">Details du Client</div>
+                <hr class="sep">
+                <table style="width:100%;border-collapse:collapse">
+                    <tr><td class="info-label" style="width:42%">Chambre N. :</td><td class="info-value-history" id="ah_chambre">................</td></tr>
+                    <tr><td class="info-label">Prenom :</td><td class="info-value-history" id="ah_prenom">................</td></tr>
+                    <tr><td class="info-label">Nom :</td><td class="info-value-history" id="ah_nom">................</td></tr>
+                    <tr><td class="info-label">Classe :</td><td class="info-value-history" id="ah_classe">................</td></tr>
+                    <tr><td class="info-label">CIN :</td><td class="info-value-history" id="ah_cin">................</td></tr>
+                    <tr><td class="info-label">Telephone :</td><td class="info-value-history" id="ah_tel">................</td></tr>
+                    <tr><td class="info-label">Email :</td><td class="info-value-history" id="ah_email">................</td></tr>
+                    <tr><td colspan="2"><hr class="sep"></td></tr>
+                    <tr><td class="info-label">Du :</td><td class="info-value-history" id="ah_debut">................</td></tr>
+                    <tr><td class="info-label">Nuit(s) :</td><td class="info-value-history" id="ah_nuits">................</td></tr>
+                    <tr><td class="info-label">Au :</td><td class="info-value-history" id="ah_fin">................</td></tr>
+                    <tr><td colspan="2"><hr class="sep"></td></tr>
+                    <tr><td class="info-label">Recette :</td><td class="info-value-history" id="ah_recette" style="color:#aa8080">................</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function clearHistory() {
+        if (!await confirmPopup('Vider toutes les archives ?')) return;
+        var f = document.createElement('form');
+        f.method = 'POST';
+        f.action = '{{ url_for("archives.clear_archives") }}';
+        document.body.appendChild(f);
+        f.submit();
+    }
+</script>
+{% endblock %}

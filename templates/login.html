@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - Hotelin-Tsika</title>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        @keyframes breathe-btn {
+            0%, 100% { transform: translateY(-2px) scale(1.01); }
+            50%      { transform: translateY(-2px) scale(1.03); }
+        }
+
+        body {
+            background-color: #0a1628;
+            color: #c8d6e5;
+            font-family: 'Segoe UI', 'Noto Sans', sans-serif;
+            font-size: 13px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-box {
+            width: 100%;
+            max-width: 360px;
+            padding: 16px;
+        }
+
+        .login-title {
+            font-family: 'Caveat', cursive;
+            font-size: 42px;
+            font-weight: 700;
+            font-style: italic;
+            color: #c8d6e5;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+
+        .login-sub {
+            text-align: center;
+            color: #5a7a9a;
+            margin-bottom: 24px;
+            font-size: 13px;
+        }
+
+        .login-card {
+            background: #111d32;
+            border: none;
+            border-radius: 12px;
+            padding: 28px 24px;
+            box-shadow: 
+                5px 5px 0 rgba(0, 0, 0, 0.45),
+                inset 1px 1px 1px rgba(255, 255, 255, 0.06),
+                inset -2px -2px 4px rgba(0, 0, 0, 0.35);
+        }
+
+        .login-card h2 {
+            text-align: center;
+            font-size: 16px;
+            color: #8899aa;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .field {
+            margin-bottom: 14px;
+        }
+
+        .field label {
+            display: block;
+            color: #8899aa;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .field input {
+            width: 100%;
+            background: #0a1628;
+            border: none;
+            color: #c8d6e5;
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 13px;
+            font-family: inherit;
+            box-shadow: 
+                2px 2px 0 rgba(0, 0, 0, 0.4),
+                inset 1px 1px 1px rgba(255, 255, 255, 0.05);
+        }
+
+        .field input:focus {
+            outline: none;
+        }
+
+        .pwd-wrap {
+            position: relative;
+        }
+
+        .pwd-wrap input {
+            padding-right: 38px;
+        }
+
+        .pwd-toggle {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 2px 4px;
+            color: #5a7a9a;
+            font-size: 12px;
+            font-family: inherit;
+            font-weight: 600;
+        }
+
+        .pwd-toggle:hover {
+            color: #8adca8;
+        }
+
+        .login-btn {
+            width: 100%;
+            background: #0e2a1e;
+            color: #6aaa7a;
+            border: none;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: inherit;
+            margin-top: 8px;
+            transition: all 0.15s;
+            box-shadow: 
+                3px 3px 0 rgba(0, 0, 0, 0.4),
+                inset 1px 1px 1px rgba(255, 255, 255, 0.08),
+                inset -1px -1px 3px rgba(0, 0, 0, 0.3);
+        }
+        .login-btn:hover {
+            background: #1a4a30;
+            color: #c8d6e5;
+            animation: breathe-btn 1.8s ease-in-out infinite;
+        }
+
+        .flash-error {
+            background: #2a1218;
+            border: none;
+            color: #aa6a6a;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 14px;
+            font-size: 13px;
+            box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.4);
+        }
+
+        .mobile-block {
+            display: none;
+            text-align: center;
+            background: #111d32;
+            border: none;
+            border-radius: 8px;
+            padding: 40px 24px;
+            box-shadow: 
+                5px 5px 0 rgba(0, 0, 0, 0.45),
+                inset 1px 1px 1px rgba(255, 255, 255, 0.06),
+                inset -2px -2px 4px rgba(0, 0, 0, 0.35);
+        }
+
+        .mobile-block .icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .mobile-block h2 {
+            font-size: 18px;
+            color: #c8d6e5;
+            margin-bottom: 8px;
+        }
+
+        .mobile-block p {
+            color: #8899aa;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <div class="login-title">Hotelin-Tsika-Web</div>
+        <div class="login-sub" style="margin-bottom:24px;color:#8adca8">Version web de Hotelin-Tsika</div>
+        <div class="mobile-block" id="mobileBlock">
+            <div class="icon">&#128187;</div>
+            <h2>Merci d'utiliser un ordinateur</h2>
+            <p>Cette application est concue pour un ecran large.<br>Reessayez sur un ordinateur.</p>
+        </div>
+        <div class="login-card" id="loginCard">
+            <h2>Connexion</h2>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="flash-error">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+            <form method="POST">
+                <div class="field">
+                    <label>Nom d'utilisateur</label>
+                    <input type="text" name="username" required placeholder="admin"/>
+                </div>
+                <div class="field">
+                    <label>Mot de passe</label>
+                    <div class="pwd-wrap">
+                        <input type="password" name="password" id="pwd" required placeholder="••••••••"/>
+                        <button type="button" class="pwd-toggle" onclick="const p=document.getElementById('pwd');const show=p.type==='password';p.type=show?'text':'password';this.textContent=show?'Masquer':'Afficher'">Afficher</button>
+                    </div>
+                </div>
+                <button type="submit" class="login-btn">Se connecter</button>
+            </form>
+        </div>
+        <div style="text-align:center;margin-top:16px;color:#5a7a9a;font-size:12px">
+            Login : <strong style="color:#6a8aba">joker@gmail.com</strong> &mdash; Mot de passe : <strong style="color:#6a8aba">joker@test</strong>
+        </div>
+    </div>
+    <script>
+        (function() {
+            var ua = navigator.userAgent || '';
+            var mobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(ua) || window.innerWidth < 768;
+            if (mobile) {
+                document.getElementById('loginCard').style.display = 'none';
+                document.getElementById('mobileBlock').style.display = 'block';
+            }
+        })();
+    </script>
+</body>
+</html>

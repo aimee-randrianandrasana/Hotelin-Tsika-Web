@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+{% block title %}Personnel - Hotelin-Tsika{% endblock %}
+{% block content %}
+<div class="page">
+    <!-- title -->
+    <div class="page-title-bar">
+        <span class="page-title">Gestion du Personnel</span>
+    </div>
+
+    <!-- search -->
+    <div class="page-search">
+        <input type="text" id="searchInput" placeholder="Rechercher un employe..."/>
+        <div class="search-count">{{ employees|length }} employee(s)</div>
+    </div>
+
+    <!-- table -->
+    <div class="page-table">
+        <div class="table-wrap">
+            <table id="empTable">
+                <thead>
+                    <tr>
+                        <th>Nom</th>
+                        <th>Prenom</th>
+                        <th>CIN</th>
+                        <th>Poste</th>
+                        <th>Grade</th>
+                        <th>Salaire</th>
+                        <th>Absences</th>
+                        <th>Dernier paiement</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for e in employees %}
+                    <tr data-id="{{ e.id }}" onclick="selectEmp(this,{{ e.id }},'{{ e.nom }}','{{ e.prenom }}','{{ e.cin }}','{{ e.tel }}','{{ e.poste }}','{{ e.grade }}',{{ e.salaire_base }},{{ e.absences }},'{{ e.date_embauche.strftime('%d/%m/%Y') if e.date_embauche else '-' }}','{{ e.last_paid.strftime('%d/%m/%Y %H:%M') if e.last_paid else 'Jamais' }}')">
+                        <td>{{ e.nom }}</td>
+                        <td>{{ e.prenom }}</td>
+                        <td>{{ e.cin }}</td>
+                        <td>{{ e.poste }}</td>
+                        <td style="color:{% if e.grade=='Junior' %}#6a8aba{% elif e.grade=='Intermediaire' %}#aa9a5a{% elif e.grade=='Senior' %}#6aaa7a{% else %}#aa6a6a{% endif %};font-weight:bold">{{ e.grade }}</td>
+                        <td style="color:#6aaa7a">{{ '{:,}'.format(e.salaire_base).replace(',',' ') }} Ar</td>
+                        <td style="color:{% if e.absences>=5 %}#aa6a6a{% else %}#aa9a5a{% endif %};font-weight:bold">{{ e.absences }}</td>
+                        <td style="color:{{ '#aa8080' if not e.last_paid else '#6a8aba' }}">{{ e.last_paid.strftime('%d/%m/%Y %H:%M') if e.last_paid else 'Jamais' }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% if not employees %}
+                    <tr><td colspan="8" style="text-align:center;color:#5a7a9a;padding:16px">Aucun employe</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- form -->
+    <div class="page-form">
+        <div class="form-grid">
+            <div>
+                <label class="form-label">Nom</label>
+                <input type="text" name="nom" id="e_nom" value="{{ employee.nom if employee else '' }}"/>
+            </div>
+            <div>
+                <label class="form-label">Prenom*</label>
+                <input type="text" name="prenom" id="e_prenom" value="{{ employee.prenom if employee else '' }}" required/>
+            </div>
+            <div>
+                <label class="form-label">CIN*</label>
+                <input type="text" name="cin" id="e_cin" value="{{ employee.cin if employee else '' }}" required maxlength="12"/>
+            </div>
+            <div>
+                <label class="form-label">Telephone</label>
+                <input type="text" name="tel" id="e_tel" value="{{ employee.tel if employee else '' }}" maxlength="10"/>
+            </div>
+            <div>
+                <label class="form-label">Poste</label>
+                <select name="poste" id="e_poste">
+                    {% for p in ["Receptionniste","Serveur","Directeur","Maintenance","Cuisinier"] %}
+                    <option value="{{ p }}" {{ 'selected' if employee and employee.poste==p else '' }}>{{ p }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Grade</label>
+                <select name="grade" id="e_grade">
+                    {% for g in ["Junior","Intermediaire","Senior","Directeur"] %}
+                    <option value="{{ g }}" {{ 'selected' if employee and employee.grade==g else '' }}>{{ g }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Salaire</label>
+                <input type="text" id="e_salaire" readonly style="background:#0e1f36;color:#6aaa7a" value="{{ '{:,}'.format(employee.salaire_base).replace(',',' ') ~ ' Ar' if employee and employee.salaire_base else '' }}"/>
+            </div>
+            <div>
+                <label class="form-label">Embauche</label>
+                <input type="date" name="date_embauche" id="e_embauche" value="{{ employee.date_embauche if employee and employee.date_embauche else '' }}"/>
+            </div>
+        </div>
+        <form method="POST" id="empForm" style="display:none">
+            <input type="hidden" name="nom" id="eh_nom"/>
+            <input type="hidden" name="prenom" id="eh_prenom"/>
+            <input type="hidden" name="cin" id="eh_cin"/>
+            <input type="hidden" name="tel" id="eh_tel"/>
+            <input type="hidden" name="poste" id="eh_poste"/>
+            <input type="hidden" name="grade" id="eh_grade"/>
+            <input type="hidden" name="date_embauche" id="eh_embauche"/>
+        </form>
+    </div>
+
+    <!-- actions -->
+    <div class="page-actions">
+        <button type="button" class="btn-cancel" onclick="clearEmpForm()">Nouveau</button>
+        <button type="button" class="btn-modify" onclick="submitEmpEdit()">Modifier</button>
+        <button type="button" class="btn-recruit" onclick="submitEmpRecruit()">Recruter</button>
+        <button type="button" class="btn-promote" onclick="submitPromote()">Promouvoir</button>
+        <button type="button" class="btn-absence" onclick="submitAbsence()">Absence</button>
+        <button type="button" class="btn-pay" onclick="submitPay()">Payer</button>
+        <button type="button" class="btn-delete" onclick="submitFire()">Renvoyer</button>
+    </div>
+
+    <!-- detail panel -->
+    <div class="page-right">
+        <div class="panel-sunken">
+            <div class="panel-inner">
+                <div class="panel-title">L'Employe</div>
+                <hr class="sep">
+                <table style="width:100%;border-collapse:collapse">
+                    <tr><td class="info-label" style="width:42%">ID :</td><td class="info-value-employee" id="ed_id">................</td></tr>
+                    <tr><td class="info-label">Nom :</td><td class="info-value-employee" id="ed_nom">................</td></tr>
+                    <tr><td class="info-label">Prenom :</td><td class="info-value-employee" id="ed_prenom">................</td></tr>
+                    <tr><td class="info-label">CIN :</td><td class="info-value-employee" id="ed_cin">................</td></tr>
+                    <tr><td class="info-label">Telephone :</td><td class="info-value-employee" id="ed_tel">................</td></tr>
+                    <tr><td class="info-label">Poste :</td><td class="info-value-employee" id="ed_poste">................</td></tr>
+                    <tr><td class="info-label">Grade :</td><td class="info-value-employee" id="ed_grade">................</td></tr>
+                    <tr><td class="info-label">Salaire :</td><td class="info-value-employee" id="ed_salaire" style="color:#6aaa7a">................</td></tr>
+                    <tr><td class="info-label">Absences :</td><td class="info-value-employee" id="ed_absences">................</td></tr>
+                    <tr><td class="info-label">Dernier paiement :</td><td class="info-value-employee" id="ed_last_paid" style="color:#6a8aba">................</td></tr>
+                    <tr><td class="info-label">Embauche le :</td><td class="info-value-employee" id="ed_embauche">................</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var selectedEmpId = null;
+    var salaires = { Receptionniste: 400000, Serveur: 350000, Directeur: 800000, Maintenance: 300000, Cuisinier: 500000 };
+    var coeffs = { Junior: 1.0, Intermediaire: 1.2, Senior: 1.5, Directeur: 2.0 };
+
+    function updateSalaire() {
+        var s = Math.round(
+            (salaires[document.getElementById('e_poste').value] || 0) *
+            (coeffs[document.getElementById('e_grade').value] || 1)
+        );
+        document.getElementById('e_salaire').value = s.toLocaleString('fr-FR').replace(/\s/g, ' ') + ' Ar';
+    }
+
+    document.getElementById('e_poste').addEventListener('change', updateSalaire);
+    document.getElementById('e_grade').addEventListener('change', updateSalaire);
+
+    function selectEmp(row, id, nom, prenom, cin, tel, poste, grade, salaire, absences, embauche, lastPaid) {
+        document.querySelectorAll('#empTable tbody tr').forEach(function(r) {
+            r.classList.remove('active-row');
+        });
+        row.classList.add('active-row');
+        selectedEmpId = id;
+
+        document.getElementById('ed_id').textContent = id;
+        document.getElementById('ed_nom').textContent = nom;
+        document.getElementById('ed_prenom').textContent = prenom;
+        document.getElementById('ed_cin').textContent = cin;
+        document.getElementById('ed_tel').textContent = tel;
+        document.getElementById('ed_poste').textContent = poste;
+        document.getElementById('ed_grade').textContent = grade;
+        document.getElementById('ed_salaire').textContent = salaire.toLocaleString('fr-FR').replace(/\s/g, ' ') + ' Ar';
+        document.getElementById('ed_absences').textContent = absences;
+        document.getElementById('ed_last_paid').textContent = lastPaid;
+        document.getElementById('ed_embauche').textContent = embauche;
+
+        document.getElementById('e_nom').value = nom;
+        document.getElementById('e_prenom').value = prenom;
+        document.getElementById('e_cin').value = cin;
+        document.getElementById('e_tel').value = tel;
+        document.getElementById('e_poste').value = poste;
+        document.getElementById('e_grade').value = grade;
+    }
+
+    function clearEmpForm() {
+        selectedEmpId = null;
+        document.querySelectorAll('#empTable tbody tr').forEach(function(r) {
+            r.classList.remove('active-row');
+        });
+        ['e_nom', 'e_prenom', 'e_cin', 'e_tel', 'e_embauche'].forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        document.getElementById('e_poste').value = 'Receptionniste';
+        document.getElementById('e_grade').value = 'Junior';
+        document.getElementById('e_salaire').value = '';
+        ['ed_id', 'ed_nom', 'ed_prenom', 'ed_cin', 'ed_tel', 'ed_poste', 'ed_grade', 'ed_salaire', 'ed_absences', 'ed_last_paid', 'ed_embauche'].forEach(function(id) {
+            document.getElementById(id).textContent = '................';
+        });
+        document.getElementById('empForm').action = '';
+    }
+
+    function syncEmpHidden() {
+        document.getElementById('eh_nom').value = document.getElementById('e_nom').value;
+        document.getElementById('eh_prenom').value = document.getElementById('e_prenom').value;
+        document.getElementById('eh_cin').value = document.getElementById('e_cin').value;
+        document.getElementById('eh_tel').value = document.getElementById('e_tel').value;
+        document.getElementById('eh_poste').value = document.getElementById('e_poste').value;
+        document.getElementById('eh_grade').value = document.getElementById('e_grade').value;
+        document.getElementById('eh_embauche').value = document.getElementById('e_embauche').value;
+    }
+
+    function submitEmpRecruit() {
+        if (!document.getElementById('e_prenom').value || !document.getElementById('e_cin').value) {
+            notify('Prenom et CIN obligatoires', 'warning');
+            return;
+        }
+        syncEmpHidden();
+        document.getElementById('empForm').action = '{{ url_for("employees.new_employee") }}';
+        document.getElementById('empForm').submit();
+    }
+
+    function submitEmpEdit() {
+        if (!selectedEmpId) {
+            notify('Selectionnez un employe', 'warning');
+            return;
+        }
+        syncEmpHidden();
+        document.getElementById('empForm').action = '{{ url_for("employees.edit_employee", emp_id=0) }}'.replace('0', selectedEmpId);
+        document.getElementById('empForm').submit();
+    }
+
+    async function submitPromote() {
+        if (!selectedEmpId) { notify('Selectionnez un employe', 'warning'); return; }
+        if (!await confirmPopup('Promouvoir cet employe ?')) return;
+        postTo('{{ url_for("employees.promote_employee", emp_id=0) }}'.replace('0', selectedEmpId));
+    }
+
+    async function submitAbsence() {
+        if (!selectedEmpId) { notify('Selectionnez un employe', 'warning'); return; }
+        if (!await confirmPopup('Marquer une absence ?')) return;
+        postTo('{{ url_for("employees.absence_employee", emp_id=0) }}'.replace('0', selectedEmpId));
+    }
+
+    async function submitPay() {
+        if (!selectedEmpId) { notify('Selectionnez un employe', 'warning'); return; }
+        if (!await confirmPopup('Payer cet employe ?')) return;
+        postTo('{{ url_for("employees.pay_employee", emp_id=0) }}'.replace('0', selectedEmpId));
+    }
+
+    async function submitFire() {
+        if (!selectedEmpId) { notify('Selectionnez un employe', 'warning'); return; }
+        if (!await confirmPopup('Licencier cet employe ?')) return;
+        postTo('{{ url_for("employees.fire_employee", emp_id=0) }}'.replace('0', selectedEmpId));
+    }
+</script>
+{% endblock %}
